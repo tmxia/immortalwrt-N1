@@ -25,7 +25,7 @@ jobs:
 
     steps:
     - name: 准备完成
-      uses: actions/checkout@main
+      uses: actions/checkout@v4
 
     - name: 清理磁盘空间
       uses: jlumbroso/free-disk-space@main
@@ -140,7 +140,7 @@ jobs:
       uses: softprops/action-gh-release@v2
       if: ${{ env.tag_status == 'success' }} && !cancelled()
       with:
-      tag_name: v${{ env.RELEASE_TAG }}
+      tag_name: v${{ env.release_tag }}
       files: ${{ env.PACKAGED_OUTPUTPATH }}/*.img.xz
       body_path: release.txt
       token: ${{ secrets.GITHUB_TOKEN }}
