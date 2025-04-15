@@ -1,4 +1,4 @@
-name: Build ImmortalWrt for N1
+8name: Build ImmortalWrt for N1
 
 on:
   workflow_dispatch:
@@ -154,7 +154,7 @@ jobs:
 
     - name: 删除自动发布的旧固件
       uses: dev-drprasad/delete-older-releases@master
-      if: ${{ env.tag_status == 'success' }} && !cancelled()  # 改用已定义的 tag_status
+      if: ${{ env.tag_status == 'success' }} && !cancelled()
       with:
       keep_latest: 2
       delete_tags: true
