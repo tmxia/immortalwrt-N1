@@ -21,6 +21,7 @@ cp -rf clone/amlogic/luci-app-amlogic clone/passwall/luci-app-passwall feeds/luc
 echo "
 # 插件
 CONFIG_PACKAGE_luci-app-amlogic=y
+CONFIG_PACKAGE_luci-app-passwall=y
 CONFIG_PACKAGE_luci-app-linkease=y
 CONFIG_PACKAGE_luci-app-lucky=y
 " >> .config
