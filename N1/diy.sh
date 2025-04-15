@@ -6,8 +6,15 @@
 
 # Add packages
 git clone --depth=1 https://github.com/ophub/luci-app-amlogic package/amlogic
+git clone https://github.com/xiaorouji/openwrt-passwall --depth=1 clone/passwall
 git clone  https://github.com/linkease/luci-app-linkease package/linkease
 git clone  https://github.com/gdy666/luci-app-lucky.git package/lucky
+
+
+# Update packages
+rm -rf feeds/luci/applications/luci-app-passwall
+cp -rf clone/amlogic/luci-app-amlogic clone/passwall/luci-app-passwall feeds/luci/applications/
+
 
 # 加入OpenClash核心
 #chmod -R a+x $GITHUB_WORKSPACE/preset-clash-core.sh
