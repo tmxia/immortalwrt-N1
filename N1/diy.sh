@@ -3,7 +3,6 @@
 # Remove packages
 #rm -rf feeds/packages/net/v2ray-geodata
 
-
 # Add packages
 git clone --depth=1 https://github.com/ophub/luci-app-amlogic package/amlogic
 git clone https://github.com/xiaorouji/openwrt-passwall --depth=1 clone/passwall
