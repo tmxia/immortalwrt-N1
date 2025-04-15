@@ -57,6 +57,11 @@ jobs:
         git clone $REPO_URL -b $REPO_BRANCH --single-branch --depth=1 openwrt
         ln -sf /workdir/openwrt $GITHUB_WORKSPACE/openwrt
 
+    - name: 编译前深度清理
+      run: |
+        rm -rf /workdir/openwrt/{bin,build_dir,dl,tmp}
+        df -h
+
     - name: 更新 & 安装 feeds
       working-directory: ./openwrt
       run: |
