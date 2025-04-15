@@ -3,7 +3,8 @@
 固件包含默认皮肤、完整 IPv6 支持，以及下列 luci-app：<br>
 - 添加 amlogic
 - 添加 dockerman
-- 添加 OpenClash
+- 添加 passwall
+- 添加 openclash
 - 添加 易有云
 - 添加 lucky大吉
 - 添加 微信推送
