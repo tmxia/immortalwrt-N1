@@ -140,13 +140,10 @@ jobs:
       uses: softprops/action-gh-release@v2
       if: ${{ env.tag_status == 'success' }} && !cancelled()
       with:
-        tag_name: OpenWrt_${{ env.PACKAGED_OUTPUTDATE }}
-        files: ${{ env.PACKAGED_OUTPUTPATH }}/*.img.xz
-        body_path: release.txt
-        token: ${{ env.GITHUB_TOKEN }}
-
-    - name: 消息推送
-      run: curl "https://api2.pushdeer.com/message/push?pushkey=${{ secrets.PUSHDEER_TOKEN }}&text=【Github Actions】OpenWrt-N1打包成功"
+      tag_name: v${{ env.RELEASE_TAG }}
+      files: ${{ env.PACKAGED_OUTPUTPATH }}/*.img.xz
+      body_path: release.txt
+      token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: 删除运行记录
       uses: Mattraks/delete-workflow-runs@main
