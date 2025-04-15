@@ -140,10 +140,10 @@ jobs:
       uses: softprops/action-gh-release@v2
       if: ${{ env.tag_status == 'success' }} && !cancelled()
       with:
-      tag_name: v${{ env.release_tag }}
-      files: ${{ env.PACKAGED_OUTPUTPATH }}/*.img.xz
-      body_path: release.txt
-      token: ${{ secrets.GITHUB_TOKEN }}
+        tag_name: v${{ env.release_tag }}
+        files: ${{ env.PACKAGED_OUTPUTPATH }}/*.img.xz
+        body_path: release.txt
+        token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: 删除运行记录
       uses: Mattraks/delete-workflow-runs@main
@@ -156,6 +156,6 @@ jobs:
       uses: dev-drprasad/delete-older-releases@master
       if: ${{ env.tag_status == 'success' }} && !cancelled()
       with:
-      keep_latest: 2
-      delete_tags: true
+        keep_latest: 2
+        delete_tags: true
 
