@@ -154,7 +154,8 @@ jobs:
 
     - name: 删除自动发布的旧固件
       uses: dev-drprasad/delete-older-releases@master
-      if: env.UPLOAD_RELEASE == 'true' && !cancelled()
+      if: ${{ env.tag_status == 'success' }} && !cancelled()  # 改用已定义的 tag_status
       with:
-        keep_latest: 2
-        delete_tags : true
+      keep_latest: 2
+      delete_tags: true
+
