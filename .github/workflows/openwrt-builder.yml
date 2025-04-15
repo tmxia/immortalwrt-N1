@@ -112,50 +112,24 @@ jobs:
         ENABLE_WIFI_K510: 0
 
     - name: 发布固件
-      if: ${{ env.PACKAGED_STATUS == 'success' }}
-      uses: softprops/action-gh-release@v2
+      uses: softprops/action-gh-release@master
+      if: ${{ env.PACKAGED_STATUS == 'success' }} && !cancelled()
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         tag_name: OpenWrt_${{ env.PACKAGED_OUTPUTDATE }}
         files: ${{ env.PACKAGED_OUTPUTPATH }}/*.img.xz
         body: |
-            🍁 注意: 首次使用建议全新刷写
-            💻 机型: 斐讯N1
-            📂 源码: ${{ env.REPO_URL }}
-            🌳 分支: ${{ env.REPO_BRANCH }}
-            ⌚ 时间: ${{ env.BUILD_TIME }}
-            🌐 地址: 192.168.3.3
-            👤 用户: root
-            🔒 密码: password
+          首次使用建议全新刷写
+          * 基本信息
+          IP: 192.168.3.3
+          账户: root
+          密码: password
 
-  # ===========================================================================
-
-  reset:
-    needs:
-      - build
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@main
-        with:
-          fetch-depth: 0
-
-      - name: Branch
-        run: |
-          git checkout --orphan tmp_work
-          git branch -d main
-
-      - name: Upload to repository
-        uses: stefanzweifel/git-auto-commit-action@master
-        with:
-          create_branch: true
-          branch: main
-          push_options: --force
-
-      - name: Delete old releases
-        uses: sgpublic/delete-release-action@master
-        with:
-          release-drop: true
-          pre-release-drop: false
-          draft-drop: false
-          release-keep-count: 1
+    - name: 删除旧固件
+      uses: dev-drprasad/delete-older-releases@master
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        keep_latest: 2
+        delete_tags : true
