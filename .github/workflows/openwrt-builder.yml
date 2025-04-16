@@ -2,11 +2,11 @@ name: Build ImmortalWrt for N1
 
 on:
   workflow_dispatch:
-   inputs:
+    inputs:
       ssh:
-        description: 'SSH connection to Actions'
+        description: "SSH connection to Actions"
         required: false
-        default: 'false'
+        default: "false"
       openwrt_kernel:
         description: "Select Kernel Version"
         required: false
@@ -35,112 +35,112 @@ jobs:
     runs-on: ubuntu-24.04
 
     steps:
-    - name: 准备完成
-      uses: actions/checkout@v4
+      - name: 准备完成
+        uses: actions/checkout@v4
 
-    - name: 清理磁盘空间
-      uses: jlumbroso/free-disk-space@main
-      with:
-        tool-cache: false
-        android: true
-        dotnet: true
-        haskell: true
-        large-packages: true
-        docker-images: true
-        swap-storage: true
+      - name: 清理磁盘空间
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: false
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+          swap-storage: true
 
-    - name: 初始化编译环境
-      env:
-        DEBIAN_FRONTEND: noninteractive
-      run: |
-        sudo -E apt-get -qq update -y
-        sudo -E apt-get -qq install -y $(curl -fsSL https://raw.githubusercontent.com/nantayo/My-Pkg/master/2410)
-        sudo -E apt-get -qq autoremove --purge
-        sudo -E apt-get -qq clean
-        sudo timedatectl set-timezone "$TZ"
-        sudo mkdir -p /workdir
-        sudo chown $USER:$GROUPS /workdir
-        
-    - name: 克隆源码
-      working-directory: /workdir
-      run: |
-        df -hT $PWD
-        git clone $REPO_URL -b $REPO_BRANCH --single-branch --depth=1 openwrt
-        ln -sf /workdir/openwrt $GITHUB_WORKSPACE/openwrt
+      - name: 初始化编译环境
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: |
+          sudo -E apt-get -qq update -y
+          sudo -E apt-get -qq install -y $(curl -fsSL https://raw.githubusercontent.com/nantayo/My-Pkg/master/2410)
+          sudo -E apt-get -qq autoremove --purge
+          sudo -E apt-get -qq clean
+          sudo timedatectl set-timezone "$TZ"
+          sudo mkdir -p /workdir
+          sudo chown $USER:$GROUPS /workdir
 
-    - name: 编译前深度清理
-      run: |
-        rm -rf /workdir/openwrt/{bin,build_dir,dl,tmp}
-        df -h
+      - name: 克隆源码
+        working-directory: /workdir
+        run: |
+          df -hT $PWD
+          git clone $REPO_URL -b $REPO_BRANCH --single-branch --depth=1 openwrt
+          ln -sf /workdir/openwrt $GITHUB_WORKSPACE/openwrt
 
-    - name: 更新 & 安装 feeds
-      working-directory: ./openwrt
-      run: |
-        ./scripts/feeds update -a
-        ./scripts/feeds install -a
+      - name: 编译前深度清理
+        run: |
+          rm -rf /workdir/openwrt/{bin,build_dir,dl,tmp}
+          df -h
 
-    - name: 加载自定义配置
-      run: |
-        [ -e $FILES ] && mv $FILES openwrt/files
-        [ -e $CONFIG_FILE ] && mv $CONFIG_FILE openwrt/.config
-        chmod +x $DIY_SH
-        cd openwrt
-        $GITHUB_WORKSPACE/$DIY_SH
+      - name: 更新 & 安装 feeds
+        working-directory: ./openwrt
+        run: |
+          ./scripts/feeds update -a
+          ./scripts/feeds install -a
 
-    - name: SSH 连接到 Actions
-      uses: P3TERX/ssh2actions@main
-      if: (github.event.inputs.ssh == 'true') || contains(github.event.action, 'ssh')
+      - name: 加载自定义配置
+        run: |
+          [ -e $FILES ] && mv $FILES openwrt/files
+          [ -e $CONFIG_FILE ] && mv $CONFIG_FILE openwrt/.config
+          chmod +x $DIY_SH
+          cd openwrt
+          $GITHUB_WORKSPACE/$DIY_SH
 
-    - name: 下载软件包
-      working-directory: ./openwrt
-      run: |
-        make defconfig
-        make download -j8
-        find dl -size -1024c -exec ls -l {} \;
-        find dl -size -1024c -exec rm -f {} \;
+      - name: SSH 连接到 Actions
+        uses: P3TERX/ssh2actions@main
+        if: (github.event.inputs.ssh == 'true') || contains(github.event.action, 'ssh')
 
-    - name: 编译固件
-      run: |
-        chmod -R 755 openwrt
-        cd openwrt
-        echo -e "$(nproc) thread compile"
-        make -j$(nproc) || make -j1 || make -j1 V=s
-        echo "compile_status=success" >> $GITHUB_ENV
+      - name: 下载软件包
+        working-directory: ./openwrt
+        run: |
+          make defconfig
+          make download -j8
+          find dl -size -1024c -exec ls -l {} \;
+          find dl -size -1024c -exec rm -f {} \;
 
-    - name: 打包镜像文件
-      if: ${{ env.compile_status }} == 'success' && !cancelled()
-      uses: unifreq/openwrt_packit@master
-      env:
-        OPENWRT_ARMVIRT: openwrt/bin/targets/*/*/*.tar.gz
-        KERNEL_VERSION_NAME: ${{ env.KERNEL_VERSIONS }}
-        PACKAGE_SOC: s905d
-        GZIP_IMGS: .xz
-        SCRIPT_DIY_PATH: N1/mk_s905d_n1.sh
-        WHOAMI: innmonkey
-        OPENWRT_VER: $(date +"%Y.%m.%d")
-        SW_FLOWOFFLOAD: 0
-        SFE_FLOW: 0
-        ENABLE_WIFI_K510: 0
+      - name: 编译固件
+        run: |
+          chmod -R 755 openwrt
+          cd openwrt
+          echo -e "$(nproc) thread compile"
+          make -j$(nproc) || make -j1 || make -j1 V=s
+          echo "compile_status=success" >> $GITHUB_ENV
 
-    - name: 发布固件
-      uses: softprops/action-gh-release@master
-      if: ${{ env.PACKAGED_STATUS == 'success' }} && !cancelled()
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: OpenWrt_${{ env.PACKAGED_OUTPUTDATE }}
-        files: ${{ env.PACKAGED_OUTPUTPATH }}/**/*.img.xz
-        body: |
-          首次使用建议全新刷写
-          * 基本信息
-          IP: 192.168.3.3
-          账户: root
-          密码: password
+      - name: 打包镜像文件
+        if: ${{ env.compile_status }} == 'success' && !cancelled()
+        uses: unifreq/openwrt_packit@master
+        env:
+          OPENWRT_ARMVIRT: openwrt/bin/targets/*/*/*.tar.gz
+          KERNEL_VERSION_NAME: ${{ env.KERNEL_VERSIONS }}
+          PACKAGE_SOC: s905d
+          GZIP_IMGS: .xz
+          SCRIPT_DIY_PATH: N1/mk_s905d_n1.sh
+          WHOAMI: innmonkey
+          OPENWRT_VER: $(date +"%Y.%m.%d")
+          SW_FLOWOFFLOAD: 0
+          SFE_FLOW: 0
+          ENABLE_WIFI_K510: 0
 
-    - name: 删除旧固件
-      uses: dev-drprasad/delete-older-releases@master
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        keep_latest: 2
-        delete_tags : true
+      - name: 发布固件
+        uses: softprops/action-gh-release@master
+        if: ${{ env.PACKAGED_STATUS == 'success' }} && !cancelled()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: OpenWrt_${{ env.PACKAGED_OUTPUTDATE }}
+          files: ${{ env.PACKAGED_OUTPUTPATH }}/**/*.img.xz
+          body: |
+            首次使用建议全新刷写
+            * 基本信息
+            IP: 192.168.3.3
+            账户: root
+            密码: password
+
+      - name: 删除旧固件
+        uses: dev-drprasad/delete-older-releases@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          keep_latest: 2
+          delete_tags: true
