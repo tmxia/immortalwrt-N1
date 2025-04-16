@@ -2,7 +2,7 @@ name: Build ImmortalWrt for N1
 
 on:
   workflow_dispatch:
-   inputs:
+    inputs:
       ssh:
         description: 'SSH connection to Actions'
         required: false
@@ -22,7 +22,6 @@ env:
 jobs:
   build:
     runs-on: ubuntu-24.04
-
     steps:
     - name: 准备完成
       uses: actions/checkout@main
@@ -92,7 +91,7 @@ jobs:
         echo "compile_status=success" >> $GITHUB_ENV
 
     - name: 打包镜像文件
-      if: ${{ env.compile_status }} == 'success' && !cancelled()
+      if: ${{ env.compile_status == 'success' && !cancelled() }}
       uses: unifreq/openwrt_packit@master
       env:
         OPENWRT_ARMVIRT: openwrt/bin/targets/*/*/*.tar.gz
@@ -107,9 +106,9 @@ jobs:
         ENABLE_WIFI_K510: 0
 
     - name: 生成发布标签
-      if: ${{ env.PACKAGED_STATUS == 'success' }} && !cancelled()
+      if: ${{ env.compile_status == 'success' && !cancelled() }}
       run: |
-        echo "release_tag=$(date +"%Y.%m.%d-%H.%M")" >> ${GITHUB_OUTPUT}
+        echo "release_tag=$(date +"%Y.%m.%d-%H.%M")" >> $GITHUB_OUTPUT
         touch release.txt
         echo "
         🍁 注意事项：首次使用建议全新刷写
@@ -133,12 +132,12 @@ jobs:
 
     - name: 发布固件到 Releases
       uses: softprops/action-gh-release@v2
-      if: ${{ env.tag_status == 'success' }} && !cancelled()
+      if: ${{ env.tag_status == 'success' && !cancelled() }}
       with:
-        tag_name: OpenWrt_${{ env.PACKAGED_OUTPUTDATE }}
-        files: ${{ env.PACKAGED_OUTPUTPATH }}/*.img.xz
+        tag_name: OpenWrt_${{ env.release_tag }}
+        files: openwrt/bin/targets/armvirt/64/*.img.xz
         body_path: release.txt
-        token: ${{ env.GITHUB_TOKEN }}
+        token: ${{ secrets.TOKEN }}
 
     - name: 消息推送
       run: curl "https://api2.pushdeer.com/message/push?pushkey=${{ secrets.PUSHDEER_TOKEN }}&text=【Github Actions】OpenWrt-N1打包成功"
@@ -148,11 +147,11 @@ jobs:
       with:
         retain_days: 1
         keep_minimum_runs: 1
-        token: ${{ env.GITHUB_TOKEN }}
+        token: ${{ secrets.TOKEN }}
 
     - name: 删除自动发布的旧固件
       uses: dev-drprasad/delete-older-releases@master
       if: env.UPLOAD_RELEASE == 'true' && !cancelled()
       with:
         keep_latest: 2
-        delete_tags : true
+        delete_tags: true
