@@ -37,12 +37,10 @@ jobs:
       if: steps.cacheHash.outputs.cache-hit != 'true'
       uses: peter-evans/repository-dispatch@v2
       with:
-        # 新增必需的 token 参数（使用 GitHub 内置的 GITHUB_TOKEN 或自定义 Token）
         token: ${{ secrets.GITHUB_TOKEN }}
         event-type: Source Code Update
-        # 如果目标仓库不是当前仓库，需显式指定 repository（当前示例中目标仓库是 tmxia/immortalwrt-n1，需确认是否正确）
         repository: tmxia/immortalwrt-n1  
-        client-payload: '{}'  # 显式声明空负载（避免 YAML 解析问题）
+        client-payload: '{}'
 
     - name: Delete workflow runs
       uses: Mattraks/delete-workflow-runs@v2
