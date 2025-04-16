@@ -43,7 +43,7 @@ jobs:
         df -hT
         mkdir openwrt-armvirt
         mkdir /workdir/upload
-        cp openwrt/bin/targets/*/*/*.tar.gz /workdir/upload/
+     #  cp openwrt/bin/targets/*/*/*.tar.gz /workdir/upload/
         mv openwrt/bin/targets/*/*/*.tar.gz openwrt-armvirt/
         sudo du -h --max-depth=1 /workdir |sort -nr | head -10
      #  rm -rf /workdir/openwrt/ && sync
