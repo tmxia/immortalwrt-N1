@@ -7,8 +7,19 @@ on:
         description: 'SSH connection to Actions'
         required: false
         default: 'false'
+      openwrt_kernel:
+        description: "Select Kernel Version"
+        required: false
+        default: "6.6_6.12"
+        type: choice
+        options:
+          - 6.1
+          - 6.6
+          - 6.12
+          - 6.1_6.12
+          - 6.6_6.12
   schedule:
-    - cron: "0 0 1 * *"
+    - cron: "0 0 1,15 * *"
 
 env:
   REPO_URL: https://github.com/immortalwrt/immortalwrt
