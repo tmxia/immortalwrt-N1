@@ -1,4 +1,4 @@
-name: openwrt-builder for N1
+name: Build ImmortalWrt for N1
 
 on:
   workflow_dispatch:
@@ -7,8 +7,8 @@ on:
         description: 'SSH connection to Actions'
         required: false
         default: 'false'
-#  schedule:
-#    - cron: "0 0 1,16 * *"
+  schedule:
+    - cron: "0 0 1 * *"
 
 env:
   REPO_URL: https://github.com/immortalwrt/immortalwrt
@@ -43,7 +43,7 @@ jobs:
         DEBIAN_FRONTEND: noninteractive
       run: |
         sudo -E apt-get -qq update -y
-        sudo -E apt-get -qq install -y $(curl -fsSL https://raw.githubusercontent.com/nantayo/My-Pkg/master/2410)
+        sudo -E apt-get -qq install -y $(curl -fsSL https://raw.githubusercontent.com/nantayo/My-Pkg/master/2305)
         sudo -E apt-get -qq autoremove --purge
         sudo -E apt-get -qq clean
         sudo timedatectl set-timezone "$TZ"
@@ -83,15 +83,14 @@ jobs:
         find dl -size -1024c -exec ls -l {} \;
         find dl -size -1024c -exec rm -f {} \;
 
-    - name: 编译固件
-      run: |
-        chmod -R 755 openwrt
-        cd openwrt
-        echo -e "$(nproc) thread compile"
-        make -j$(nproc) || make -j1 || make -j1 V=s
-        echo "compile_status=success" >> $GITHUB_ENV
+      - name: 编译内核
+        working-directory: ./openwrt
+        run: |
+          make -j$(nproc) || make -j1 || make -j1 V=s
+          echo "compile_status=success" >> $GITHUB_ENV
+          echo "BUILD_TIME=$(date +"%Y年%m月%d日%H时%M分%S秒")" >> $GITHUB_ENV
 
-      - name: 打包镜像
+      - name: 编译固件
         if: ${{ env.compile_status == 'success' }}
         uses: unifreq/openwrt_packit@master
         env:
@@ -105,7 +104,7 @@ jobs:
           SFE_FLOW: 0
           ENABLE_WIFI_K510: 0
 
-      - name: 上传发布
+      - name: 发布固件
         if: ${{ env.PACKAGED_STATUS == 'success' }}
         uses: softprops/action-gh-release@v2
         with:
@@ -120,7 +119,7 @@ jobs:
             🌐 地址: 192.168.3.3
             👤 用户: root
             🔒 密码: password
-            
+    
     - name: 删除运行记录
       uses: Mattraks/delete-workflow-runs@main
       with:
